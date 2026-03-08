@@ -1,9 +1,0 @@
-
-Lint
-issues found
-Lint: internal/parser/js.go#L35
-var `jsClassMethodRe` is unused (unused)
-Lint: internal/parser/js.go#L34
-var `jsMethodRe` is unused (unused)
-Test (1.22)
-Failed to restore: "/usr/bin/tar" failed with error: The process '/usr/bin/tar' failed with exit code 2
