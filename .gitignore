@@ -22,5 +22,11 @@ context.json
 .DS_Store
 Thumbs.db
 
+# Claude
+.claude/
+
+# GitHub Issues
+issues/
+
 # Test golden outputs (regenerated)
 tests/golden/

@@ -1,22 +1,9 @@
-Annotations
-10 errors
-Lint: internal/parser/go.go#L203
-func `isExportedName` is unused (unused)
-Lint: tests/fixtures/sample/main.go#L28
-Error return value of `app.Start` is not checked (errcheck)
-Lint: internal/output/output_test.go#L125
-Error return value of `json.Unmarshal` is not checked (errcheck)
-Lint: internal/parser/parser_test.go#L361
-Error return value of `os.Mkdir` is not checked (errcheck)
-Lint: internal/parser/benchmark_test.go#L129
-Error return value of `p.Parse` is not checked (errcheck)
-Lint: internal/parser/benchmark_test.go#L93
-Error return value of `p.Parse` is not checked (errcheck)
-Lint: internal/parser/benchmark_test.go#L58
-Error return value is not checked (errcheck)
-Lint: internal/parser/benchmark_test.go#L51
-Error return value of `os.WriteFile` is not checked (errcheck)
-Lint: internal/parser/benchmark_test.go#L35
-Error return value of `os.WriteFile` is not checked (errcheck)
-Lint: internal/config/config_test.go#L43
-Error return value of `os.WriteFile` is not checked (errcheck)
+
+Lint
+issues found
+Lint: internal/parser/js.go#L35
+var `jsClassMethodRe` is unused (unused)
+Lint: internal/parser/js.go#L34
+var `jsMethodRe` is unused (unused)
+Test (1.22)
+Failed to restore: "/usr/bin/tar" failed with error: The process '/usr/bin/tar' failed with exit code 2

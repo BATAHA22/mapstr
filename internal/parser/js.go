@@ -31,8 +31,6 @@ var (
 	// Functions
 	jsFuncDeclRe     = regexp.MustCompile(`(?m)^(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)`)
 	jsArrowFuncRe    = regexp.MustCompile(`(?m)^(?:export\s+)?(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\([^)]*\)\s*=>`)
-	jsMethodRe       = regexp.MustCompile(`(?m)^\s+(?:async\s+)?(\w+)\s*\([^)]*\)\s*\{`)
-	jsClassMethodRe  = regexp.MustCompile(`(?m)^\s+(?:static\s+)?(?:async\s+)?(\w+)\s*\([^)]*\)\s*\{`)
 
 	// Classes and types
 	jsClassRe        = regexp.MustCompile(`(?m)^(?:export\s+)?(?:abstract\s+)?class\s+(\w+)`)
