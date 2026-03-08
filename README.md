@@ -11,10 +11,10 @@
     <a href="#-integrations">Integrations</a>
   </p>
   <p align="center">
-    <img src="https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat&logo=go" alt="Go Version">
+    <img src="https://img.shields.io/badge/Go-1.23+-00ADD8?style=flat&logo=go" alt="Go Version">
     <img src="https://img.shields.io/badge/License-MIT-green?style=flat" alt="License">
     <img src="https://img.shields.io/badge/LLMs-6+_Providers-blueviolet?style=flat" alt="LLM Providers">
-    <img src="https://img.shields.io/badge/Languages-Go_JS_TS_Python-orange?style=flat" alt="Languages">
+    <img src="https://img.shields.io/badge/Languages-Go_JS_TS_Python_Dart-orange?style=flat" alt="Languages">
   </p>
 </p>
 
@@ -32,7 +32,10 @@ Mapstr is a **single-binary CLI** that analyzes any software project and generat
 
 ```bash
 # 🔍 Analyze current directory (auto-detects your LLM provider)
-mapstr .
+mapstr
+
+# 🔍 Analyze a specific project
+mapstr ./my-project
 
 # 🤖 Pick your AI provider
 mapstr ./my-project --provider claude
@@ -50,13 +53,13 @@ mapstr ./my-project --no-ai
 
 ## 📦 Output
 
-One command generates **three files** instantly:
+One command generates **three files** in `<project>/mapstr/`:
 
 | File | Description |
 |------|-------------|
-| 📄 `CONTEXT.md` | Natural-language architecture overview — written for humans |
-| 📊 `GRAPH.mmd` | Mermaid dependency diagram — visualize relationships at a glance |
-| 🤖 `context.json` | Structured data — optimized for AI assistants (Claude, Cursor, Copilot) |
+| 📄 `mapstr/CONTEXT.md` | Natural-language architecture overview — written for humans |
+| 📊 `mapstr/GRAPH.mmd` | Mermaid dependency diagram — visualize relationships at a glance |
+| 🤖 `mapstr/context.json` | Structured data — optimized for AI assistants (Claude, Cursor, Copilot) |
 
 <details>
 <summary>📄 Example <code>CONTEXT.md</code> output</summary>
@@ -121,18 +124,18 @@ Choose your preferred method:
 ### 🐹 Go
 
 ```bash
-go install github.com/mapstr/mapstr@latest
+go install github.com/BATAHA22/mapstr@latest
 ```
 
 ### 🍺 Homebrew (macOS / Linux)
 
 ```bash
-brew install mapstr/tap/mapstr
+brew install BATAHA22/tap/mapstr
 ```
 
 ### 📦 Pre-built Binaries
 
-Download the latest release for your platform from [**GitHub Releases**](https://github.com/mapstr/mapstr/releases):
+Download from [**GitHub Releases**](https://github.com/BATAHA22/mapstr/releases):
 
 | Platform | Architecture | Download |
 |----------|-------------|----------|
@@ -143,24 +146,25 @@ Download the latest release for your platform from [**GitHub Releases**](https:/
 ### 🐳 Docker
 
 ```bash
-docker run --rm -v $(pwd):/app mapstr/mapstr /app
+docker run --rm -v $(pwd):/app bataha22/mapstr /app
 ```
 
 ---
 
 ## 🌐 Supported Languages
 
-| Language | Parser | Status |
-|----------|--------|--------|
-| 🐹 Go | `go/parser` (stdlib AST) | ✅ Stable |
-| 🟨 JavaScript | Regex-based extraction | ✅ Stable |
-| 🔷 TypeScript | Regex-based extraction | ✅ Stable |
-| 🐍 Python | Regex-based extraction | ✅ Stable |
-| 🦀 Rust | — | 🔜 Planned |
-| ☕ Java | — | 🔜 Planned |
-| 💎 Ruby | — | 🔜 Planned |
+| Language | Parser | Frameworks | Status |
+|----------|--------|------------|--------|
+| 🐹 Go | `go/parser` (stdlib AST) | net/http, Gin, Echo | ✅ Stable |
+| 🟨 JavaScript | Regex-based extraction | Express, Next.js, React | ✅ Stable |
+| 🔷 TypeScript | Regex-based extraction | Express, Next.js, React | ✅ Stable |
+| 🐍 Python | Regex-based extraction | Django, FastAPI, Flask | ✅ Stable |
+| 🎯 Dart | Regex-based extraction | Flutter | ✅ Stable |
+| 🦀 Rust | — | — | 🔜 Planned |
+| ☕ Java | — | — | 🔜 Planned |
+| 💎 Ruby | — | — | 🔜 Planned |
 
-> **What gets extracted:** functions, methods, classes, interfaces, types, imports, exports, and API routes (Express, Flask, FastAPI, net/http, etc.)
+> **What gets extracted:** functions, methods, classes, interfaces, types, enums, mixins, imports, exports, and API routes (Express, Flask, FastAPI, net/http, Flutter routes, etc.)
 
 ---
 
@@ -216,15 +220,25 @@ ai:
 depth: 3                        # How deep to traverse the dependency tree
 incremental: true               # Only re-analyze changed files (git-aware)
 
-# 🚫 Ignored directories
+# 🚫 Ignored paths (these are the defaults — override to customize)
 ignore:
-  - node_modules
   - .git
-  - dist
+  - node_modules
   - vendor
   - __pycache__
-  - .next
+  - venv
+  - .venv
+  - env
+  - dist
   - build
+  - .next
+  - .nuxt
+  - __init__.py
+  - manage.py
+  - "*.min.js"
+  - "*.min.css"
+  - "*.lock"
+  - "[0-9][0-9][0-9][0-9]_*.py"  # Django migrations
 ```
 
 ---
@@ -234,6 +248,8 @@ ignore:
 ```
 Usage:
   mapstr [path] [flags]
+
+Path is optional — defaults to the current directory.
 
 Flags:
   -l, --lang string        🌍 Output language (default "en")
@@ -245,7 +261,7 @@ Flags:
   -w, --watch              👀 Watch mode — regenerate on file changes
       --mcp                🔌 Start as MCP server for AI assistants
   -c, --config string      📄 Path to .mapstr.yml config file
-      --out-dir string     📁 Output directory (default ".")
+      --out-dir string     📁 Output directory (default: <project>/mapstr/)
   -h, --help               ❓ Show help
   -v, --version            📌 Show version
 ```
@@ -253,6 +269,9 @@ Flags:
 ### 💡 Usage Examples
 
 ```bash
+# Analyze current directory — outputs to ./mapstr/
+mapstr
+
 # Analyze a project in Arabic
 mapstr ./my-project --lang ar
 
@@ -291,7 +310,7 @@ Auto-generate and commit `CONTEXT.md` on every push — documentation that never
 
 ```yaml
 - name: 🗺️ Generate Codebase Context
-  uses: mapstr/mapstr-action@v1
+  uses: BATAHA22/mapstr-action@v1
   with:
     lang: en
     output: md
@@ -314,7 +333,7 @@ git config --global init.templateDir ~/.git-templates
 📂 codebase
    │
    ▼
-🔬 Language Parsers         Go / JS / TS / Python AST parsing
+🔬 Language Parsers         Go / JS / TS / Python / Dart parsing
    │
    ▼
 🔗 Dependency Resolver      Resolves imports, exports, cross-file references
@@ -335,7 +354,7 @@ git config --global init.templateDir ~/.git-templates
 ### 🔑 Key Design Decisions
 
 - **No CGo** — Pure Go + regex parsers for JS/Python. Single static binary, easy cross-compilation.
-- **No Tree-sitter dependency** — Go's stdlib `go/parser` for Go files, battle-tested regex for JS/TS/Python.
+- **No Tree-sitter dependency** — Go's stdlib `go/parser` for Go files, battle-tested regex for JS/TS/Python/Dart.
 - **Provider-agnostic** — Unified `Provider` interface. Add a new LLM in ~50 lines.
 - **Incremental analysis** — Git-aware caching. Only re-parses changed files.
 - **Graceful degradation** — If AI fails, you still get the structural analysis and graph.
@@ -363,6 +382,8 @@ git config --global init.templateDir ~/.git-templates
 - [ ] 🖥️ **Interactive TUI** — Navigable dependency graph in the terminal
 - [ ] 🔀 **PR Context** — Auto-generate context diffs for pull requests
 - [ ] 👥 **Team Mode** — Shared context maps with annotations
+- [x] 🎯 **Dart/Flutter** — Full Dart parser with Flutter route detection
+- [x] 🧠 **Framework-Aware** — Smart ignore for Django, Next.js, Go vendor
 - [ ] 🔌 **Plugin System** — Custom analyzers for frameworks (React, Django, Rails)
 - [ ] 🧬 **Embedding Export** — Vector embeddings for RAG pipelines
 - [ ] 📊 **Provider Benchmarks** — Compare summary quality across LLMs
@@ -377,7 +398,7 @@ Contributions are welcome! Here's how to get started:
 
 ```bash
 # Clone the repo
-git clone https://github.com/mapstr/mapstr.git
+git clone https://github.com/BATAHA22/mapstr.git
 cd mapstr
 
 # Install dependencies
@@ -404,7 +425,7 @@ MIT — Free and open source, forever.
 <p align="center">
   <strong>🗺️ "Don't read the code. Map it."</strong>
   <br><br>
-  <a href="https://github.com/mapstr/mapstr">⭐ Star on GitHub</a> •
-  <a href="https://github.com/mapstr/mapstr/issues">🐛 Report Bug</a> •
-  <a href="https://github.com/mapstr/mapstr/issues">💡 Request Feature</a>
+  <a href="https://github.com/BATAHA22/mapstr">⭐ Star on GitHub</a> •
+  <a href="https://github.com/BATAHA22/mapstr/issues">🐛 Report Bug</a> •
+  <a href="https://github.com/BATAHA22/mapstr/issues">💡 Request Feature</a>
 </p>
