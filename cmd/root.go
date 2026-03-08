@@ -41,7 +41,22 @@ Output files (written to <project>/mapstr/):
 	RunE:    runAnalyze,
 }
 
+const versionTemplate = `
+  __  __    _    ____  ____ _____ ____
+ |  \/  |  / \  |  _ \/ ___|_   _|  _ \
+ | |\/| | / _ \ | |_) \___ \ | | | |_) |
+ | |  | |/ ___ \|  __/ ___) || | |  _ <
+ |_|  |_/_/   \_\_|   |____/ |_| |_| \_\
+
+ Version : {{.Version}}
+ Author  : Taha Ben Ali
+ License : MIT
+ Repo    : github.com/BATAHA22/mapstr
+ Tagline : "Don't read the code. Map it."
+`
+
 func init() {
+	rootCmd.SetVersionTemplate(versionTemplate)
 	rootCmd.Flags().StringVarP(&flagLang, "lang", "l", "en", "Output language (en, ar, es, fr, de, zh, ja, ...)")
 	rootCmd.Flags().StringSliceVarP(&flagOutput, "output", "o", []string{"md", "mermaid", "json"}, "Output formats")
 	rootCmd.Flags().StringVarP(&flagProvider, "provider", "p", "", "LLM provider: claude, openai, gemini, ollama, deepseek, mistral")
