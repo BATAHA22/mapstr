@@ -90,6 +90,12 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("create output dir: %w", err)
 	}
 
+	outRel, _ := filepath.Rel(absPath, outDir)
+	if outRel == "" {
+		outRel = outDir
+	}
+	fmt.Printf("  Output dir: %s/\n", outRel)
+
 	outputFormats := cfg.Output
 	for _, format := range outputFormats {
 		switch strings.ToLower(format) {
@@ -99,7 +105,8 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 				return fmt.Errorf("write CONTEXT.md: %w", err)
 			}
-			fmt.Printf("  Written: %s\n", path)
+			relPath, _ := filepath.Rel(absPath, path)
+			fmt.Printf("  Written: %s\n", relPath)
 
 		case "mermaid", "mmd":
 			content := output.GenerateMermaid(g)
@@ -107,7 +114,8 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 				return fmt.Errorf("write GRAPH.mmd: %w", err)
 			}
-			fmt.Printf("  Written: %s\n", path)
+			relPath, _ := filepath.Rel(absPath, path)
+			fmt.Printf("  Written: %s\n", relPath)
 
 		case "json":
 			content, jsonErr := output.GenerateJSON(projectName, nodes, g, aiSummary)
@@ -118,7 +126,8 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
 				return fmt.Errorf("write context.json: %w", err)
 			}
-			fmt.Printf("  Written: %s\n", path)
+			relPath, _ := filepath.Rel(absPath, path)
+			fmt.Printf("  Written: %s\n", relPath)
 
 		default:
 			fmt.Fprintf(os.Stderr, "  Warning: unknown output format %q\n", format)
