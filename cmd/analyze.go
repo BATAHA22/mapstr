@@ -10,12 +10,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mapstr/mapstr/internal/config"
-	gitutil "github.com/mapstr/mapstr/internal/git"
-	"github.com/mapstr/mapstr/internal/graph"
-	"github.com/mapstr/mapstr/internal/llm"
-	"github.com/mapstr/mapstr/internal/output"
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/config"
+	gitutil "github.com/BATAHA22/mapstr/internal/git"
+	"github.com/BATAHA22/mapstr/internal/graph"
+	"github.com/BATAHA22/mapstr/internal/llm"
+	"github.com/BATAHA22/mapstr/internal/output"
+	"github.com/BATAHA22/mapstr/internal/parser"
 )
 
 func runAnalyze(cmd *cobra.Command, args []string) error {

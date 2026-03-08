@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mapstr/mapstr/internal/graph"
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/graph"
+	"github.com/BATAHA22/mapstr/internal/parser"
 )
 
 func sampleNodes() []*parser.FileNode {

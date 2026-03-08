@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/parser"
 )
 
 // GraphNode represents a node in the dependency graph.

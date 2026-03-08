@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mapstr/mapstr/internal/config"
+	"github.com/BATAHA22/mapstr/internal/config"
 )
 
 func TestGoParser(t *testing.T) {

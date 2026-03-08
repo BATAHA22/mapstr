@@ -9,10 +9,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mapstr/mapstr/internal/config"
-	"github.com/mapstr/mapstr/internal/graph"
-	"github.com/mapstr/mapstr/internal/output"
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/config"
+	"github.com/BATAHA22/mapstr/internal/graph"
+	"github.com/BATAHA22/mapstr/internal/output"
+	"github.com/BATAHA22/mapstr/internal/parser"
 )
 
 // MCP JSON-RPC types

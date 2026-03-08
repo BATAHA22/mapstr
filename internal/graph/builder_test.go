@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/parser"
 )
 
 func TestBuild(t *testing.T) {

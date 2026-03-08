@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/mapstr/mapstr/cmd"
+	"github.com/BATAHA22/mapstr/cmd"
 
 	// Register language parsers
-	_ "github.com/mapstr/mapstr/internal/parser"
+	_ "github.com/BATAHA22/mapstr/internal/parser"
 )
 
 func main() {

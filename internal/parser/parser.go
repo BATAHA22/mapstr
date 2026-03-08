@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mapstr/mapstr/internal/config"
+	"github.com/BATAHA22/mapstr/internal/config"
 )
 
 // FunctionDef represents a function or method definition.

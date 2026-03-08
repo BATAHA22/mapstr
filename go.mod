@@ -1,4 +1,4 @@
-module github.com/mapstr/mapstr
+module github.com/BATAHA22/mapstr
 
 go 1.23.6
 

@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mapstr/mapstr/internal/config"
-	"github.com/mapstr/mapstr/internal/graph"
-	"github.com/mapstr/mapstr/internal/output"
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/config"
+	"github.com/BATAHA22/mapstr/internal/graph"
+	"github.com/BATAHA22/mapstr/internal/output"
+	"github.com/BATAHA22/mapstr/internal/parser"
 
 	// Register parsers
-	_ "github.com/mapstr/mapstr/internal/parser"
+	_ "github.com/BATAHA22/mapstr/internal/parser"
 )
 
 func TestEndToEndNoAI(t *testing.T) {

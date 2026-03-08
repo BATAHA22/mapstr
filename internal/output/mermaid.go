@@ -1,7 +1,7 @@
 package output
 
 import (
-	"github.com/mapstr/mapstr/internal/graph"
+	"github.com/BATAHA22/mapstr/internal/graph"
 )
 
 // GenerateMermaid produces the GRAPH.mmd content.

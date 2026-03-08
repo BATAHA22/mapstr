@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mapstr/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/parser"
 )
 
 // Provider is the interface all LLM backends must implement.
