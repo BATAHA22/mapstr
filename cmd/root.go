@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -36,9 +35,11 @@ Output files (written to <project>/mapstr/):
   CONTEXT.md   — Natural-language architecture overview
   GRAPH.mmd    — Mermaid dependency diagram
   context.json — Structured data for AI assistants`,
-	Args:    cobra.MaximumNArgs(1),
-	Version: Version,
-	RunE:    runAnalyze,
+	Args:          cobra.MaximumNArgs(1),
+	Version:       Version,
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	RunE:          runAnalyze,
 }
 
 const versionTemplate = `
@@ -72,7 +73,7 @@ func init() {
 // Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		// Errors already printed by runAnalyze; just exit with code 1.
 		os.Exit(1)
 	}
 }

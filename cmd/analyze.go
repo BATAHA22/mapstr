@@ -56,6 +56,17 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	// Apply CLI flag overrides
 	applyOverrides(cfg)
 
+	// ── Pre-flight: Validate LLM provider before doing any work ───────
+	if !cfg.AI.NoAI {
+		_, err := llm.CheckAvailability(cfg.AI.Provider, cfg.AI.Model)
+		if setupErr, ok := err.(*llm.SetupError); ok {
+			printSetupHelp(setupErr, cfg.AI.Provider)
+			return fmt.Errorf("provider not configured")
+		} else if err != nil {
+			return err
+		}
+	}
+
 	fmt.Printf("\n  Analyzing %s...\n\n", projectName)
 
 	// ── Phase 1: Parse project (with spinner) ──────────────────────────
@@ -84,11 +95,13 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	// ── Phase 3: AI summarization (with spinner) ───────────────────────
 	var aiSummary string
 	var usage *llm.Usage
+	llmFailed := false
 	if !cfg.AI.NoAI {
 		aiSummary, usage, err = summarize(cfg, projectName, nodes, g)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "  ⚠ LLM summarization failed: %v\n", err)
-			fmt.Fprintln(os.Stderr, "  Falling back to structural-only output.")
+			llmFailed = true
+			fmt.Fprintf(os.Stderr, "\n  ⚠ LLM call failed: %v\n", err)
+			fmt.Fprintln(os.Stderr, "  Generating structural-only output (no AI summary).")
 		} else {
 			fmt.Printf("  ✓ AI summary generated (%s)\n", usage.Provider)
 		}
@@ -152,23 +165,29 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// ── Print summary box ──────────────────────────────────────────────
-	costStr := "N/A"
-	if usage != nil {
-		costStr = usage.CostString()
-	}
+	// ── Print summary ──────────────────────────────────────────────────
+	if llmFailed {
+		// Partial success: LLM failed but structural output was generated
+		fmt.Printf("  ⚠ Partial output written to %s/ (no AI summary)\n", outRel)
+		fmt.Println("  Tip: check your API key or use --no-ai to skip LLM.")
+	} else {
+		costStr := "N/A"
+		if usage != nil {
+			costStr = usage.CostString()
+		}
 
-	ui.PrintSummary(ui.Summary{
-		Duration:    time.Since(totalStart),
-		CostStr:     costStr,
-		Provider:    providerName(usage),
-		OutputDir:   outRel,
-		OutputFiles: outputFiles,
-		FileCount:   len(nodes),
-		NodeCount:   len(g.Nodes),
-		EdgeCount:   len(g.Edges),
-		NoAI:        cfg.AI.NoAI,
-	})
+		ui.PrintSummary(ui.Summary{
+			Duration:    time.Since(totalStart),
+			CostStr:     costStr,
+			Provider:    providerName(usage),
+			OutputDir:   outRel,
+			OutputFiles: outputFiles,
+			FileCount:   len(nodes),
+			NodeCount:   len(g.Nodes),
+			EdgeCount:   len(g.Edges),
+			NoAI:        cfg.AI.NoAI,
+		})
+	}
 
 	return nil
 }
@@ -178,6 +197,49 @@ func providerName(u *llm.Usage) string {
 		return ""
 	}
 	return u.Provider
+}
+
+func printSetupHelp(e *llm.SetupError, requestedProvider string) {
+	fmt.Fprintln(os.Stderr)
+
+	if e.Provider == "" {
+		// Auto-detect failed: no providers configured at all
+		fmt.Fprintln(os.Stderr, "  ⚠️  No LLM provider configured")
+		fmt.Fprintln(os.Stderr, "  ℹ️  Set an API key for any supported provider:")
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "    export ANTHROPIC_API_KEY=\"sk-...\"   # Claude")
+		fmt.Fprintln(os.Stderr, "    export OPENAI_API_KEY=\"sk-...\"      # OpenAI")
+		fmt.Fprintln(os.Stderr, "    export GEMINI_API_KEY=\"...\"         # Gemini")
+		fmt.Fprintln(os.Stderr, "    export MISTRAL_API_KEY=\"...\"        # Mistral")
+		fmt.Fprintln(os.Stderr, "    export DEEPSEEK_API_KEY=\"...\"       # DeepSeek")
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "  Or run without AI:")
+		fmt.Fprintln(os.Stderr, "    mapstr --no-ai")
+		fmt.Fprintln(os.Stderr)
+		return
+	}
+
+	// Specific provider missing
+	providerFlag := ""
+	if requestedProvider != "" {
+		providerFlag = " --provider " + requestedProvider
+	}
+
+	fmt.Fprintf(os.Stderr, "  ⚠️  No API key found for %s", e.Provider)
+	if requestedProvider != "" {
+		fmt.Fprintf(os.Stderr, " (--provider %s)", requestedProvider)
+	}
+	fmt.Fprintln(os.Stderr)
+
+	fmt.Fprintf(os.Stderr, "  ℹ️  Set %s or use --no-ai\n", e.EnvVar)
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "  Quick start:")
+	fmt.Fprintf(os.Stderr, "    export %s=\"your-key-here\"\n", e.EnvVar)
+	fmt.Fprintf(os.Stderr, "    mapstr%s\n", providerFlag)
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintln(os.Stderr, "  Or run without AI:")
+	fmt.Fprintln(os.Stderr, "    mapstr --no-ai")
+	fmt.Fprintln(os.Stderr)
 }
 
 func parseProject(absPath string, cfg *config.Config) ([]*parser.FileNode, error) {

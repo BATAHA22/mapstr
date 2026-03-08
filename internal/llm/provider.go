@@ -158,6 +158,53 @@ func isEntryPoint(path string) bool {
 	return false
 }
 
+// providerEnvKeys maps provider names to their required env variable.
+var providerEnvKeys = map[string]string{
+	"claude":   "ANTHROPIC_API_KEY",
+	"openai":   "OPENAI_API_KEY",
+	"gemini":   "GEMINI_API_KEY",
+	"deepseek": "DEEPSEEK_API_KEY",
+	"mistral":  "MISTRAL_API_KEY",
+}
+
+// CheckAvailability validates that the resolved provider is ready to use.
+// Returns the provider and a user-friendly error with setup instructions if not.
+func CheckAvailability(providerName, model string) (Provider, error) {
+	if providerName != "" {
+		// Explicit provider requested
+		p, err := Resolve(providerName, model)
+		if err != nil {
+			envVar, ok := providerEnvKeys[providerName]
+			if ok {
+				return nil, &SetupError{Provider: providerName, EnvVar: envVar}
+			}
+			return nil, err
+		}
+		if !p.Available() {
+			envVar := providerEnvKeys[providerName]
+			return nil, &SetupError{Provider: providerName, EnvVar: envVar}
+		}
+		return p, nil
+	}
+
+	// Auto-detect: try all providers
+	p, err := autoDetect(model)
+	if err != nil {
+		return nil, &SetupError{Provider: "", EnvVar: ""}
+	}
+	return p, nil
+}
+
+// SetupError is returned when a provider is not configured.
+type SetupError struct {
+	Provider string
+	EnvVar   string
+}
+
+func (e *SetupError) Error() string {
+	return fmt.Sprintf("no API key found for %s", e.Provider)
+}
+
 // envKey returns an environment variable value or empty string.
 func envKey(key string) string {
 	return os.Getenv(key)
