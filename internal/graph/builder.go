@@ -147,7 +147,7 @@ func resolveImport(imp, fromPath string, fileIndex map[string]string) string {
 		resolved = filepath.ToSlash(resolved)
 
 		// Try exact match, then with common extensions
-		extensions := []string{"", ".go", ".js", ".ts", ".jsx", ".tsx", ".py", "/index.js", "/index.ts"}
+		extensions := []string{"", ".go", ".js", ".ts", ".jsx", ".tsx", ".py", ".dart", "/index.js", "/index.ts"}
 		for _, ext := range extensions {
 			candidate := resolved + ext
 			if _, ok := fileIndex[candidate]; ok {

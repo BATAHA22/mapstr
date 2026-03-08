@@ -37,14 +37,32 @@ func DefaultConfig() *Config {
 		Depth:       3,
 		Incremental: true,
 		Ignore: []string{
-			"node_modules",
+			// Version control & dependencies
 			".git",
-			"dist",
+			"node_modules",
 			"vendor",
+			// Python environments
 			"__pycache__",
-			".next",
+			"venv",
+			"env",
+			".venv",
+			// Build output
+			"dist",
 			"build",
+			".next",
+			".nuxt",
+			// Framework-specific
+			"__init__.py",
+			"manage.py",
+			// Mapstr own output
+			"mapstr",
 			".mapstr-cache.json",
+			// Minified & lock files
+			"*.min.js",
+			"*.min.css",
+			"*.lock",
+			// Django migrations (auto-generated)
+			"[0-9][0-9][0-9][0-9]_*.py",
 		},
 	}
 }

@@ -3,6 +3,7 @@ mapstr
 mapstr.exe
 
 # Output files
+mapstr/
 CONTEXT.md
 GRAPH.mmd
 context.json

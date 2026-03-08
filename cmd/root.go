@@ -32,7 +32,7 @@ map of the codebase using structural parsing and multi-LLM summarization.
   mapstr ./my-project --provider openai --model gpt-4o
   mapstr ./my-project --no-ai
 
-Output files:
+Output files (written to <project>/mapstr/):
   CONTEXT.md   — Natural-language architecture overview
   GRAPH.mmd    — Mermaid dependency diagram
   context.json — Structured data for AI assistants`,
@@ -51,7 +51,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&flagWatch, "watch", "w", false, "Watch mode — regenerate on file changes")
 	rootCmd.Flags().BoolVar(&flagMCP, "mcp", false, "Start as MCP server")
 	rootCmd.Flags().StringVarP(&flagConfig, "config", "c", "", "Path to .mapstr.yml")
-	rootCmd.Flags().StringVar(&flagOutDir, "out-dir", ".", "Output directory")
+	rootCmd.Flags().StringVar(&flagOutDir, "out-dir", "", "Output directory (default: <project>/mapstr/)")
 }
 
 // Execute runs the root command.

@@ -83,6 +83,9 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 
 	// Generate outputs
 	outDir := flagOutDir
+	if outDir == "" {
+		outDir = filepath.Join(absPath, "mapstr")
+	}
 	if err := os.MkdirAll(outDir, 0755); err != nil {
 		return fmt.Errorf("create output dir: %w", err)
 	}
