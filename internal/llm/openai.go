@@ -31,7 +31,7 @@ func (o *OpenAI) Name() string      { return "openai" }
 func (o *OpenAI) Available() bool    { return o.apiKey != "" }
 func (o *OpenAI) SetModel(m string)  { o.model = m }
 
-func (o *OpenAI) Summarize(ctx context.Context, prompt string) (string, error) {
+func (o *OpenAI) Summarize(ctx context.Context, prompt string) (string, *Usage, error) {
 	body := map[string]any{
 		"model": o.model,
 		"messages": []map[string]string{
@@ -42,12 +42,12 @@ func (o *OpenAI) Summarize(ctx context.Context, prompt string) (string, error) {
 
 	payload, err := json.Marshal(body)
 	if err != nil {
-		return "", fmt.Errorf("openai: marshal: %w", err)
+		return "", nil, fmt.Errorf("openai: marshal: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", o.baseURL+"/chat/completions", bytes.NewReader(payload))
 	if err != nil {
-		return "", fmt.Errorf("openai: request: %w", err)
+		return "", nil, fmt.Errorf("openai: request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -56,17 +56,17 @@ func (o *OpenAI) Summarize(ctx context.Context, prompt string) (string, error) {
 	client := &http.Client{Timeout: DefaultTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("openai: request: %w", err)
+		return "", nil, fmt.Errorf("openai: request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("openai: read response: %w", err)
+		return "", nil, fmt.Errorf("openai: read response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("openai: API error %d: %s", resp.StatusCode, string(respBody))
+		return "", nil, fmt.Errorf("openai: API error %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
@@ -75,15 +75,28 @@ func (o *OpenAI) Summarize(ctx context.Context, prompt string) (string, error) {
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
 	}
 
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", fmt.Errorf("openai: unmarshal: %w", err)
+		return "", nil, fmt.Errorf("openai: unmarshal: %w", err)
 	}
 
 	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("openai: empty response")
+		return "", nil, fmt.Errorf("openai: empty response")
 	}
 
-	return result.Choices[0].Message.Content, nil
+	usage := &Usage{
+		InputTokens:  result.Usage.PromptTokens,
+		OutputTokens: result.Usage.CompletionTokens,
+		TotalTokens:  result.Usage.TotalTokens,
+		Provider:     "openai",
+		Model:        o.model,
+	}
+
+	return result.Choices[0].Message.Content, usage, nil
 }

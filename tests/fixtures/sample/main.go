@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type App struct {
@@ -16,7 +17,11 @@ func NewApp(name string, port int) *App {
 
 func (a *App) Start() error {
 	http.HandleFunc("/health", a.healthHandler)
-	return http.ListenAndServe(fmt.Sprintf(":%d", a.Port), nil)
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%d", a.Port),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	return srv.ListenAndServe()
 }
 
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {

@@ -76,7 +76,7 @@ func TestSummarizeWithFallbackPrimaryFails(t *testing.T) {
 		err:  context.DeadlineExceeded,
 	}
 
-	_, err := SummarizeWithFallback(context.Background(), primary, "", "test prompt")
+	_, _, err := SummarizeWithFallback(context.Background(), primary, "", "test prompt")
 	if err == nil {
 		t.Error("expected error when primary fails and no fallback")
 	}
@@ -90,8 +90,8 @@ type mockProvider struct {
 
 func (m *mockProvider) Name() string                                     { return m.name }
 func (m *mockProvider) Available() bool                                  { return true }
-func (m *mockProvider) Summarize(_ context.Context, _ string) (string, error) {
-	return m.result, m.err
+func (m *mockProvider) Summarize(_ context.Context, _ string) (string, *Usage, error) {
+	return m.result, nil, m.err
 }
 
 func contains(s, substr string) bool {

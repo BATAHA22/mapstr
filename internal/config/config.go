@@ -77,7 +77,7 @@ func Load(dir string) (*Config, error) {
 		return cfg, nil
 	}
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, fmt.Errorf("config: read %s: %w", path, err)
 	}

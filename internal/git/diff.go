@@ -59,13 +59,13 @@ func SaveCache(root string, nodes []*parser.FileNode) error {
 	if err != nil {
 		return fmt.Errorf("git: cache marshal: %w", err)
 	}
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
 
 // LoadCache reads previously cached file nodes.
 func LoadCache(root string) ([]*parser.FileNode, error) {
 	path := filepath.Join(root, cacheFile)
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {
 		return nil, fmt.Errorf("git: cache read: %w", err)
 	}

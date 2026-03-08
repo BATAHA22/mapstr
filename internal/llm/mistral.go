@@ -25,7 +25,7 @@ func (m *Mistral) Name() string      { return "mistral" }
 func (m *Mistral) Available() bool    { return m.apiKey != "" }
 func (m *Mistral) SetModel(s string)  { m.model = s }
 
-func (m *Mistral) Summarize(ctx context.Context, prompt string) (string, error) {
+func (m *Mistral) Summarize(ctx context.Context, prompt string) (string, *Usage, error) {
 	body := map[string]any{
 		"model": m.model,
 		"messages": []map[string]string{
@@ -36,12 +36,12 @@ func (m *Mistral) Summarize(ctx context.Context, prompt string) (string, error) 
 
 	payload, err := json.Marshal(body)
 	if err != nil {
-		return "", fmt.Errorf("mistral: marshal: %w", err)
+		return "", nil, fmt.Errorf("mistral: marshal: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.mistral.ai/v1/chat/completions", bytes.NewReader(payload))
 	if err != nil {
-		return "", fmt.Errorf("mistral: request: %w", err)
+		return "", nil, fmt.Errorf("mistral: request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -50,17 +50,17 @@ func (m *Mistral) Summarize(ctx context.Context, prompt string) (string, error) 
 	client := &http.Client{Timeout: DefaultTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("mistral: request: %w", err)
+		return "", nil, fmt.Errorf("mistral: request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("mistral: read response: %w", err)
+		return "", nil, fmt.Errorf("mistral: read response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("mistral: API error %d: %s", resp.StatusCode, string(respBody))
+		return "", nil, fmt.Errorf("mistral: API error %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var result struct {
@@ -69,15 +69,28 @@ func (m *Mistral) Summarize(ctx context.Context, prompt string) (string, error) 
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
 	}
 
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", fmt.Errorf("mistral: unmarshal: %w", err)
+		return "", nil, fmt.Errorf("mistral: unmarshal: %w", err)
 	}
 
 	if len(result.Choices) == 0 {
-		return "", fmt.Errorf("mistral: empty response")
+		return "", nil, fmt.Errorf("mistral: empty response")
 	}
 
-	return result.Choices[0].Message.Content, nil
+	usage := &Usage{
+		InputTokens:  result.Usage.PromptTokens,
+		OutputTokens: result.Usage.CompletionTokens,
+		TotalTokens:  result.Usage.TotalTokens,
+		Provider:     "mistral",
+		Model:        m.model,
+	}
+
+	return result.Choices[0].Message.Content, usage, nil
 }

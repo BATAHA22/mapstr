@@ -49,6 +49,29 @@ mapstr ./my-project --provider ollama --model llama3
 mapstr ./my-project --no-ai
 ```
 
+### 🎬 What It Looks Like
+
+```
+  Analyzing my-project...
+
+  ✓ Parsed 128 files
+  ✓ Built graph: 441 nodes, 114 edges
+  ✓ AI summary generated (mistral)
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                                                                 │
+  │  Analysis Complete!                                             │
+  │                                                                 │
+  │  ⏱  Duration : 3.2s                                            │
+  │  💰 Cost     : $0.0008 (mistral)                               │
+  │  📁 Outputs  : mapstr/ (CONTEXT.md, GRAPH.mmd, context.json)   │
+  │  📊 Stats    : 128 files | 441 nodes | 114 edges               │
+  │                                                                 │
+  └─────────────────────────────────────────────────────────────────┘
+```
+
+> Animated spinners during each phase, real-time cost tracking from API usage, and a clean summary box on completion.
+
 ---
 
 ## 📦 Output
@@ -181,6 +204,21 @@ Mapstr works with **6+ LLM providers** out of the box. Just set your API key and
 | 🟠 Mistral | `MISTRAL_API_KEY` | `mistral-large-latest` | EU-hosted, strong multilingual |
 | ⚫ Ollama (local) | — | `llama3` | Fully offline, zero cost, private |
 
+### 💰 Cost Tracking
+
+Mapstr tracks token usage from every API call and estimates the cost in real time. After each analysis, the summary box shows the exact cost:
+
+| Provider | Input (per 1M tokens) | Output (per 1M tokens) | Typical Analysis Cost |
+|----------|----------------------|------------------------|----------------------|
+| 🟣 Claude | $3.00 | $15.00 | ~$0.005 |
+| 🟢 OpenAI | $2.50 | $10.00 | ~$0.004 |
+| 🔵 Gemini | $1.25 | $5.00 | ~$0.002 |
+| 🟡 DeepSeek | $0.14 | $0.28 | ~$0.0003 |
+| 🟠 Mistral | $2.00 | $6.00 | ~$0.003 |
+| ⚫ Ollama | Free | Free | $0.00 |
+
+> Costs are estimated from actual `input_tokens` and `output_tokens` returned by each API. Use `--no-ai` for zero cost.
+
 ### 🔍 Auto-Detection
 
 If no `--provider` flag is set, Mapstr automatically checks for API keys in the order above and uses the **first available provider**. No configuration needed — just set your key and run.
@@ -263,7 +301,7 @@ Flags:
   -c, --config string      📄 Path to .mapstr.yml config file
       --out-dir string     📁 Output directory (default: <project>/mapstr/)
   -h, --help               ❓ Show help
-  -v, --version            📌 Show version
+  -v, --version            📌 Show version (ASCII art banner + author info)
 ```
 
 ### 💡 Usage Examples
@@ -333,22 +371,25 @@ git config --global init.templateDir ~/.git-templates
 📂 codebase
    │
    ▼
-🔬 Language Parsers         Go / JS / TS / Python / Dart parsing
+🔬 Language Parsers         Go / JS / TS / Python / Dart parsing        ← spinner animation
    │
    ▼
-🔗 Dependency Resolver      Resolves imports, exports, cross-file references
+🔗 Dependency Resolver      Resolves imports, exports, cross-file refs
    │
    ▼
-🕸️ Graph Builder            Builds relationship graph of modules & functions
+🕸️ Graph Builder            Builds relationship graph of modules         ← spinner animation
    │
    ▼
-🤖 LLM Summarizer           Claude / OpenAI / Gemini / Ollama / DeepSeek / Mistral
+🤖 LLM Summarizer           Claude / OpenAI / Gemini / Ollama / ...     ← spinner + cost tracking
    │
    ▼
 📦 Output Engine
    ├── 📄 CONTEXT.md         Architecture overview
    ├── 📊 GRAPH.mmd          Mermaid dependency diagram
    └── 🤖 context.json       Structured data for AI tools
+   │
+   ▼
+🎉 Summary Box              Duration, cost, stats, output paths
 ```
 
 ### 🔑 Key Design Decisions
@@ -356,8 +397,10 @@ git config --global init.templateDir ~/.git-templates
 - **No CGo** — Pure Go + regex parsers for JS/Python. Single static binary, easy cross-compilation.
 - **No Tree-sitter dependency** — Go's stdlib `go/parser` for Go files, battle-tested regex for JS/TS/Python/Dart.
 - **Provider-agnostic** — Unified `Provider` interface. Add a new LLM in ~50 lines.
+- **Real-time cost tracking** — Token usage parsed from every API response. Know exactly what each analysis costs.
 - **Incremental analysis** — Git-aware caching. Only re-parses changed files.
 - **Graceful degradation** — If AI fails, you still get the structural analysis and graph.
+- **Professional CLI UX** — Animated spinners, colored output, and a completion summary box.
 
 ---
 
@@ -368,6 +411,8 @@ git config --global init.templateDir ~/.git-templates
 | 🤖 Multi-LLM support (6+) | ✅ | ❌ | ❌ |
 | 🔧 Offline / no-AI mode | ✅ | ❌ | ❌ |
 | 📊 Visual Mermaid graph | ✅ | ❌ | ⚠️ Complex |
+| 💰 Cost tracking (per-request) | ✅ | ❌ | ❌ |
+| 🎬 Animated CLI (spinners, colors) | ✅ | ❌ | ❌ |
 | 🌍 Multi-language summaries (i18n) | ✅ | ❌ | ❌ |
 | 📦 Single binary CLI | ✅ (Go) | ✅ (Node) | ❌ (Rust) |
 | 👨‍💻 Built for developers | ✅ | ❌ | ❌ |
@@ -384,6 +429,8 @@ git config --global init.templateDir ~/.git-templates
 - [ ] 👥 **Team Mode** — Shared context maps with annotations
 - [x] 🎯 **Dart/Flutter** — Full Dart parser with Flutter route detection
 - [x] 🧠 **Framework-Aware** — Smart ignore for Django, Next.js, Go vendor
+- [x] 🎬 **Professional CLI UX** — Spinner animations, colored output, summary box
+- [x] 💰 **Cost Tracking** — Real-time token usage and cost estimation per provider
 - [ ] 🔌 **Plugin System** — Custom analyzers for frameworks (React, Django, Rails)
 - [ ] 🧬 **Embedding Export** — Vector embeddings for RAG pipelines
 - [ ] 📊 **Provider Benchmarks** — Compare summary quality across LLMs
@@ -407,8 +454,11 @@ go mod tidy
 # Run tests
 go test ./...
 
-# Build
+# Build (dev version)
 go build -o mapstr .
+
+# Build with version from git tag
+go build -ldflags "-X github.com/BATAHA22/mapstr/cmd.Version=$(git describe --tags --abbrev=0)" -o mapstr .
 
 # Run on itself 🤯
 ./mapstr . --no-ai

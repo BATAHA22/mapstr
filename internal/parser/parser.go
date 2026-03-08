@@ -120,7 +120,7 @@ func ParseProject(root string, cfg *config.Config) ([]*FileNode, error) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			content, readErr := os.ReadFile(path)
+			content, readErr := os.ReadFile(filepath.Clean(path))
 			if readErr != nil {
 				return
 			}

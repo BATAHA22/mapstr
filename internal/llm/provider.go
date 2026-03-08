@@ -13,7 +13,7 @@ import (
 // Provider is the interface all LLM backends must implement.
 type Provider interface {
 	Name() string
-	Summarize(ctx context.Context, prompt string) (string, error)
+	Summarize(ctx context.Context, prompt string) (string, *Usage, error)
 	Available() bool
 }
 
@@ -69,27 +69,27 @@ func autoDetect(model string) (Provider, error) {
 }
 
 // SummarizeWithFallback tries the primary provider, then the fallback.
-func SummarizeWithFallback(ctx context.Context, primary Provider, fallbackName, prompt string) (string, error) {
-	result, err := primary.Summarize(ctx, prompt)
+func SummarizeWithFallback(ctx context.Context, primary Provider, fallbackName, prompt string) (string, *Usage, error) {
+	result, usage, err := primary.Summarize(ctx, prompt)
 	if err == nil && strings.TrimSpace(result) != "" {
-		return result, nil
+		return result, usage, nil
 	}
 
 	if fallbackName == "" {
-		return "", fmt.Errorf("llm: primary provider %s failed: %w", primary.Name(), err)
+		return "", nil, fmt.Errorf("llm: primary provider %s failed: %w", primary.Name(), err)
 	}
 
 	fb, fbErr := resolveExplicit(fallbackName, "")
 	if fbErr != nil {
-		return "", fmt.Errorf("llm: primary %s failed (%w), fallback %q not found", primary.Name(), err, fallbackName)
+		return "", nil, fmt.Errorf("llm: primary %s failed (%w), fallback %q not found", primary.Name(), err, fallbackName)
 	}
 
-	result, fbErr = fb.Summarize(ctx, prompt)
+	result, usage, fbErr = fb.Summarize(ctx, prompt)
 	if fbErr != nil {
-		return "", fmt.Errorf("llm: primary %s and fallback %s both failed: %w", primary.Name(), fb.Name(), fbErr)
+		return "", nil, fmt.Errorf("llm: primary %s and fallback %s both failed: %w", primary.Name(), fb.Name(), fbErr)
 	}
 
-	return result, nil
+	return result, usage, nil
 }
 
 // DefaultTimeout for LLM API calls.

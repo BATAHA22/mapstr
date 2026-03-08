@@ -16,12 +16,15 @@ import (
 	"github.com/BATAHA22/mapstr/internal/llm"
 	"github.com/BATAHA22/mapstr/internal/output"
 	"github.com/BATAHA22/mapstr/internal/parser"
+	"github.com/BATAHA22/mapstr/internal/ui"
 )
 
 func runAnalyze(cmd *cobra.Command, args []string) error {
 	if flagMCP {
 		return runMCPServer(cmd, args)
 	}
+
+	totalStart := time.Now()
 
 	projectPath := "."
 	if len(args) > 0 {
@@ -53,40 +56,50 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	// Apply CLI flag overrides
 	applyOverrides(cfg)
 
-	fmt.Printf("Analyzing %s...\n", projectName)
+	fmt.Printf("\n  Analyzing %s...\n\n", projectName)
 
-	// Parse the project
-	start := time.Now()
+	// ── Phase 1: Parse project (with spinner) ──────────────────────────
+	sp := ui.NewSpinner("Scanning project structure...")
+	sp.Start()
+
 	nodes, err := parseProject(absPath, cfg)
+	sp.Stop()
 	if err != nil {
 		return err
 	}
-	fmt.Printf("  Parsed %d files in %s\n", len(nodes), time.Since(start).Round(time.Millisecond))
+	fmt.Printf("  ✓ Parsed %d files\n", len(nodes))
 
 	if len(nodes) == 0 {
 		return fmt.Errorf("no supported source files found in %s", absPath)
 	}
 
-	// Build dependency graph
-	g := graph.Build(nodes)
-	fmt.Printf("  Built graph: %d nodes, %d edges\n", len(g.Nodes), len(g.Edges))
+	// ── Phase 2: Build dependency graph (with spinner) ─────────────────
+	sp = ui.NewSpinner("Building dependency graph...")
+	sp.Start()
 
-	// AI summarization
+	g := graph.Build(nodes)
+	sp.Stop()
+	fmt.Printf("  ✓ Built graph: %d nodes, %d edges\n", len(g.Nodes), len(g.Edges))
+
+	// ── Phase 3: AI summarization (with spinner) ───────────────────────
 	var aiSummary string
+	var usage *llm.Usage
 	if !cfg.AI.NoAI {
-		aiSummary, err = summarize(cfg, projectName, nodes, g)
+		aiSummary, usage, err = summarize(cfg, projectName, nodes, g)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "  Warning: LLM summarization failed: %v\n", err)
+			fmt.Fprintf(os.Stderr, "  ⚠ LLM summarization failed: %v\n", err)
 			fmt.Fprintln(os.Stderr, "  Falling back to structural-only output.")
+		} else {
+			fmt.Printf("  ✓ AI summary generated (%s)\n", usage.Provider)
 		}
 	}
 
-	// Generate outputs
+	// ── Phase 4: Generate outputs ──────────────────────────────────────
 	outDir := flagOutDir
 	if outDir == "" {
 		outDir = filepath.Join(absPath, "mapstr")
 	}
-	if err := os.MkdirAll(outDir, 0755); err != nil {
+	if err := os.MkdirAll(outDir, 0750); err != nil {
 		return fmt.Errorf("create output dir: %w", err)
 	}
 
@@ -94,7 +107,8 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	if outRel == "" {
 		outRel = outDir
 	}
-	fmt.Printf("  Output dir: %s/\n", outRel)
+
+	var outputFiles []string
 
 	outputFormats := cfg.Output
 	for _, format := range outputFormats {
@@ -102,20 +116,18 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		case "md", "markdown":
 			content := output.GenerateMarkdown(projectName, nodes, g, aiSummary)
 			path := filepath.Join(outDir, "CONTEXT.md")
-			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 				return fmt.Errorf("write CONTEXT.md: %w", err)
 			}
-			relPath, _ := filepath.Rel(absPath, path)
-			fmt.Printf("  Written: %s\n", relPath)
+			outputFiles = append(outputFiles, "CONTEXT.md")
 
 		case "mermaid", "mmd":
 			content := output.GenerateMermaid(g)
 			path := filepath.Join(outDir, "GRAPH.mmd")
-			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 				return fmt.Errorf("write GRAPH.mmd: %w", err)
 			}
-			relPath, _ := filepath.Rel(absPath, path)
-			fmt.Printf("  Written: %s\n", relPath)
+			outputFiles = append(outputFiles, "GRAPH.mmd")
 
 		case "json":
 			content, jsonErr := output.GenerateJSON(projectName, nodes, g, aiSummary)
@@ -123,26 +135,49 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("generate JSON: %w", jsonErr)
 			}
 			path := filepath.Join(outDir, "context.json")
-			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			if err := os.WriteFile(path, []byte(content), 0600); err != nil {
 				return fmt.Errorf("write context.json: %w", err)
 			}
-			relPath, _ := filepath.Rel(absPath, path)
-			fmt.Printf("  Written: %s\n", relPath)
+			outputFiles = append(outputFiles, "context.json")
 
 		default:
-			fmt.Fprintf(os.Stderr, "  Warning: unknown output format %q\n", format)
+			fmt.Fprintf(os.Stderr, "  ⚠ Unknown output format %q\n", format)
 		}
 	}
 
 	// Save cache for incremental mode
 	if cfg.Incremental && gitutil.IsGitRepo(absPath) {
 		if err := gitutil.SaveCache(absPath, nodes); err != nil {
-			fmt.Fprintf(os.Stderr, "  Warning: could not save cache: %v\n", err)
+			fmt.Fprintf(os.Stderr, "  ⚠ Could not save cache: %v\n", err)
 		}
 	}
 
-	fmt.Println("Done.")
+	// ── Print summary box ──────────────────────────────────────────────
+	costStr := "N/A"
+	if usage != nil {
+		costStr = usage.CostString()
+	}
+
+	ui.PrintSummary(ui.Summary{
+		Duration:    time.Since(totalStart),
+		CostStr:     costStr,
+		Provider:    providerName(usage),
+		OutputDir:   outRel,
+		OutputFiles: outputFiles,
+		FileCount:   len(nodes),
+		NodeCount:   len(g.Nodes),
+		EdgeCount:   len(g.Edges),
+		NoAI:        cfg.AI.NoAI,
+	})
+
 	return nil
+}
+
+func providerName(u *llm.Usage) string {
+	if u == nil {
+		return ""
+	}
+	return u.Provider
 }
 
 func parseProject(absPath string, cfg *config.Config) ([]*parser.FileNode, error) {
@@ -170,25 +205,27 @@ func parseProject(absPath string, cfg *config.Config) ([]*parser.FileNode, error
 	return nodes, nil
 }
 
-func summarize(cfg *config.Config, projectName string, nodes []*parser.FileNode, g *graph.DependencyGraph) (string, error) {
+func summarize(cfg *config.Config, projectName string, nodes []*parser.FileNode, g *graph.DependencyGraph) (string, *llm.Usage, error) {
 	provider, err := llm.Resolve(cfg.AI.Provider, cfg.AI.Model)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	fmt.Printf("  Using LLM: %s\n", provider.Name())
+	sp := ui.NewSpinner(fmt.Sprintf("Generating AI summary (%s)...", provider.Name()))
+	sp.Start()
+	defer sp.Stop()
 
 	prompt := llm.BuildPrompt(projectName, nodes, g.Summary(), cfg.Language)
 
 	ctx, cancel := context.WithTimeout(context.Background(), llm.DefaultTimeout)
 	defer cancel()
 
-	result, err := llm.SummarizeWithFallback(ctx, provider, cfg.AI.Fallback, prompt)
+	result, usage, err := llm.SummarizeWithFallback(ctx, provider, cfg.AI.Fallback, prompt)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return result, nil
+	return result, usage, nil
 }
 
 func applyOverrides(cfg *config.Config) {
