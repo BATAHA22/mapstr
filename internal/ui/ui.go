@@ -9,12 +9,9 @@ import (
 )
 
 var (
-	bold    = color.New(color.Bold).SprintFunc()
-	cyan    = color.New(color.FgCyan).SprintFunc()
-	green   = color.New(color.FgGreen).SprintFunc()
-	yellow  = color.New(color.FgYellow).SprintFunc()
-	magenta = color.New(color.FgMagenta).SprintFunc()
-	dim     = color.New(color.Faint).SprintFunc()
+	bold  = color.New(color.Bold).SprintFunc()
+	green = color.New(color.FgGreen).SprintFunc()
+	dim   = color.New(color.Faint).SprintFunc()
 )
 
 // Spinner wraps briandowns/spinner with convenience methods.
@@ -26,7 +23,7 @@ type Spinner struct {
 func NewSpinner(message string) *Spinner {
 	s := spinner.New(spinner.CharSets[14], 120*time.Millisecond)
 	s.Suffix = "  " + message
-	s.Color("cyan")
+	_ = s.Color("cyan")
 	return &Spinner{s: s}
 }
 
