@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod:*)",
+      "Bash(mkdir:*)",
+      "Bash(go:*)",
+      "Bash(go build:*)",
+      "Bash(./contextmap.exe:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)"
+    ]
+  }
+}

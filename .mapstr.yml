@@ -1,0 +1,20 @@
+language: en
+output:
+  - md
+  - mermaid
+  - json
+ai:
+  provider: ""
+  model: ""
+  fallback: ollama
+  no_ai: false
+depth: 3
+incremental: true
+ignore:
+  - node_modules
+  - .git
+  - dist
+  - vendor
+  - __pycache__
+  - .next
+  - build

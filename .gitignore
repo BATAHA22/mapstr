@@ -1,0 +1,26 @@
+# Binary
+mapstr
+mapstr.exe
+
+# Output files
+CONTEXT.md
+GRAPH.mmd
+context.json
+.mapstr-cache.json
+
+# Go
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test golden outputs (regenerated)
+tests/golden/
