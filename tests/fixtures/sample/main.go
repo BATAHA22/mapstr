@@ -25,5 +25,5 @@ func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	app := NewApp("sample", 8080)
-	app.Start()
+	_ = app.Start()
 }

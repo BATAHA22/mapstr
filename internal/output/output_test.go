@@ -122,7 +122,9 @@ func TestGenerateJSONNoAI(t *testing.T) {
 	}
 
 	var result ContextJSON
-	json.Unmarshal([]byte(jsonStr), &result)
+	if err := json.Unmarshal([]byte(jsonStr), &result); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
 
 	if result.Summary == "" {
 		t.Error("should have a structural summary when no AI")

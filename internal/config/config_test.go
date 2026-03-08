@@ -40,7 +40,9 @@ ignore:
   - node_modules
   - dist
 `
-	os.WriteFile(filepath.Join(dir, ".mapstr.yml"), []byte(yamlContent), 0644)
+	if err := os.WriteFile(filepath.Join(dir, ".mapstr.yml"), []byte(yamlContent), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	cfg, err := Load(dir)
 	if err != nil {

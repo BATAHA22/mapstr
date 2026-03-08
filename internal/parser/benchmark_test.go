@@ -32,7 +32,9 @@ func Helper%d() string {
 }
 `, i, i, i, i)
 		path := filepath.Join(dir, fmt.Sprintf("file%d.go", i))
-		os.WriteFile(path, []byte(content), 0644)
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			b.Fatal(err)
+		}
 	}
 
 	// Create 100 JS files
@@ -48,14 +50,16 @@ export class Service%d {
 }
 `, (i+1)%100, i, i)
 		path := filepath.Join(dir, fmt.Sprintf("file%d.js", i))
-		os.WriteFile(path, []byte(content), 0644)
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			b.Fatal(err)
+		}
 	}
 
 	cfg := config.DefaultConfig()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		ParseProject(dir, cfg)
+		_, _ = ParseProject(dir, cfg)
 	}
 }
 
@@ -90,7 +94,7 @@ func (s *Server) Stop() error {
 	p := &GoParser{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		p.Parse("server.go", code)
+		_, _ = p.Parse("server.go", code)
 	}
 }
 
@@ -126,6 +130,6 @@ export default app;
 	p := &JSParser{}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		p.Parse("app.js", code)
+		_, _ = p.Parse("app.js", code)
 	}
 }

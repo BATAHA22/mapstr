@@ -5,7 +5,6 @@ import (
 	goparser "go/parser"
 	"go/token"
 	"strings"
-	"unicode"
 )
 
 func init() {
@@ -197,12 +196,4 @@ func exprName(expr ast.Expr) string {
 	default:
 		return ""
 	}
-}
-
-// isExportedName checks if a Go name is exported (starts with uppercase).
-func isExportedName(name string) bool {
-	if len(name) == 0 {
-		return false
-	}
-	return unicode.IsUpper(rune(name[0]))
 }

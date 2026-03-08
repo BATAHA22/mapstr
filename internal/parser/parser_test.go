@@ -347,19 +347,27 @@ func TestParseProject(t *testing.T) {
 
 	// Create a Go file
 	goFile := filepath.Join(dir, "main.go")
-	os.WriteFile(goFile, []byte(`package main
+	if err := os.WriteFile(goFile, []byte(`package main
 
 func main() {}
-`), 0644)
+`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create a JS file
 	jsFile := filepath.Join(dir, "index.js")
-	os.WriteFile(jsFile, []byte(`export function hello() {}
-`), 0644)
+	if err := os.WriteFile(jsFile, []byte(`export function hello() {}
+`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	// Create a file that should be ignored
-	os.Mkdir(filepath.Join(dir, "node_modules"), 0755)
-	os.WriteFile(filepath.Join(dir, "node_modules", "dep.js"), []byte(`module.exports = {};`), 0644)
+	if err := os.Mkdir(filepath.Join(dir, "node_modules"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "node_modules", "dep.js"), []byte(`module.exports = {};`), 0644); err != nil {
+		t.Fatal(err)
+	}
 
 	cfg := config.DefaultConfig()
 	nodes, err := ParseProject(dir, cfg)
