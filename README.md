@@ -32,15 +32,14 @@ Mapstr is a **single-binary CLI** that analyzes any software project and generat
 
 ```bash
 # 🔍 Analyze current directory (auto-detects your LLM provider)
-mapstr
+$env:ANTHROPIC_API_KEY = "key"
+mapstr -p Claude
 
-# 🔍 Analyze a specific project
-mapstr ./my-project
 
 # 🤖 Pick your AI provider
-mapstr ./my-project --provider claude
-mapstr ./my-project --provider openai --model gpt-4o
-mapstr ./my-project --provider gemini --model gemini-2.5-pro
+mapstr --provider claude
+mapstr --provider openai --model gpt-4o
+mapstr --provider gemini --model gemini-2.5-pro
 
 # 🏠 Use a local model — fully offline, zero API costs
 mapstr ./my-project --provider ollama --model llama3
@@ -48,6 +47,18 @@ mapstr ./my-project --provider ollama --model llama3
 # 🔧 Structural analysis only — no AI, no API calls
 mapstr ./my-project --no-ai
 ```
+## 🤖 LLM Providers
+
+Mapstr works with **6+ LLM providers** out of the box. Just set your API key and go:
+
+| Provider | Env Variable | Default Model | Best For |
+|----------|-------------|---------------|----------|
+| 🟣 Claude (Anthropic) | `ANTHROPIC_API_KEY` | `claude-sonnet-4-5` | Nuanced architecture summaries |
+| 🟢 OpenAI | `OPENAI_API_KEY` | `gpt-4o` | Strong general performance |
+| 🔵 Gemini (Google) | `GEMINI_API_KEY` | `gemini-2.5-pro` | Large context — great for monorepos |
+| 🟡 DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` | Cost-effective reasoning |
+| 🟠 Mistral | `MISTRAL_API_KEY` | `mistral-large-latest` | EU-hosted, strong multilingual |
+| ⚫ Ollama (local) | — | `llama3` | Fully offline, zero cost, private |
 
 ### 🎬 What It Looks Like
 
@@ -191,18 +202,7 @@ docker run --rm -v $(pwd):/app bataha22/mapstr /app
 
 ---
 
-## 🤖 LLM Providers
 
-Mapstr works with **6+ LLM providers** out of the box. Just set your API key and go:
-
-| Provider | Env Variable | Default Model | Best For |
-|----------|-------------|---------------|----------|
-| 🟣 Claude (Anthropic) | `ANTHROPIC_API_KEY` | `claude-sonnet-4-5` | Nuanced architecture summaries |
-| 🟢 OpenAI | `OPENAI_API_KEY` | `gpt-4o` | Strong general performance |
-| 🔵 Gemini (Google) | `GEMINI_API_KEY` | `gemini-2.5-pro` | Large context — great for monorepos |
-| 🟡 DeepSeek | `DEEPSEEK_API_KEY` | `deepseek-chat` | Cost-effective reasoning |
-| 🟠 Mistral | `MISTRAL_API_KEY` | `mistral-large-latest` | EU-hosted, strong multilingual |
-| ⚫ Ollama (local) | — | `llama3` | Fully offline, zero cost, private |
 
 ### 💰 Cost Tracking
 
